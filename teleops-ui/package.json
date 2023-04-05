@@ -5,10 +5,12 @@
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
+    "build-prod": "NODE_ENV=production; vue-cli-service build --mode production",
+    "build-dev": "NODE_ENV=development; vue-cli-service build --mode development",
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
-    "@viamrobotics/sdk": "^0.0.31",
+    "@viamrobotics/sdk": "^0.0.36",
     "core-js": "^3.8.3",
     "register-service-worker": "^1.7.2",
     "vue": "^3.2.13",
