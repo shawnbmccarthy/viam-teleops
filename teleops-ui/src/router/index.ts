@@ -16,7 +16,6 @@ const routes: Array<RouteRecordRaw> = [
     path: '/tele-admin',
     name: 'tele-admin',
     component: TeleAdminView,
-    beforeEnter: (to, from) => true,
     meta: {
       requiresAuth: true,
     },
@@ -25,7 +24,6 @@ const routes: Array<RouteRecordRaw> = [
     path: '/org-admin',
     name: 'org-admin',
     component: OrgAdminView,
-    beforeEnter: (to, from) => true,
     meta: {
       requiresAuth: true,
     },

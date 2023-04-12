@@ -1492,10 +1492,10 @@
     "@improbable-eng/grpc-web" "^0.13.0"
     google-protobuf "^3.14.0"
 
-"@viamrobotics/sdk@^0.0.36":
-  version "0.0.36"
-  resolved "https://registry.npmjs.org/@viamrobotics/sdk/-/sdk-0.0.36.tgz"
-  integrity sha512-df9fMBFXTRd0cOK72bxsn9MUC2EGpg61GSiSXRK/jioOpYuw1D7vNWBvYNEUduLRvnDtr3QKQZLx1gh02bkP4w==
+"@viamrobotics/sdk@^0.0.41":
+  version "0.0.41"
+  resolved "https://registry.yarnpkg.com/@viamrobotics/sdk/-/sdk-0.0.41.tgz#7561befe36dd2afd35c7a1d5d9545f712cbc0625"
+  integrity sha512-3HvQ+QnY8u0Hzl3F/aum1wWilqlo5XmHYsAAjwKc8Gdhl7mb16VuhaJfvc9nFF5gEjzLgebDUHLavb6iZFtu+w==
   dependencies:
     "@viamrobotics/rpc" "^0.1.34"
 
