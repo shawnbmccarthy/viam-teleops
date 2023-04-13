@@ -1,50 +1,59 @@
 <template>
   <div>
-    <h1>Controller</h1>
+      <h3>hello from controller</h3>
   </div>
 </template>
 
-<style>
-
-</style>
-
 <script setup lang="ts">
-/*
- * implement controller components
- */
-import {
-  defineProps,
-  onMounted,
-} from 'vue';
-import { createRobotClient } from '@viamrobotics/sdk';
+import { defineProps, onMounted, ref } from 'vue';
+import {createRobotClient, RobotClient, StreamClient} from '@viamrobotics/sdk';
 
 interface Props {
-  signalingHost: string,
-  host: string,
-  secret: string
+    signalingHost: string,
+    host: string,
+    secret: string
 }
 
 const props = defineProps<Props>();
+const streamClient = ref<StreamClient | null>(null);
 
-const dialTo = () => {
-  console.log(`host: ${props.host}`);
-  console.log(`secret: ${props.secret}`);
-  console.log(`signal: ${props.signalingHost}`);
-  return createRobotClient({
-    host: props.host,
-    credential: {
-      type: 'robot-location-secret',
-      payload: props.secret,
-    },
-    authEntity: props.host,
-    signalingAddress: props.signalingHost,
-  });
-};
+/*
+ * simple connection loop
+ */
+const connect = async () => {
+    let connected = false;
+    let attempts = 0;
 
+    while(!connected && attempts < 5) {
+        try {
+            return await createRobotClient({
+                host: props.host,
+                authEntity: props.host,
+                signalingAddress: props.signalingHost,
+                credential: {
+                    type: 'robot-location-secret',
+                    payload: props.secret
+                },
+                iceServers: [{ urls: 'stun:global.stun.twilio.com:3478' }]
+            })
+        } catch (err) {
+            console.warn(`failed to connect (${err}), attempting to retry (${attempts})`);
+            attempts++;
+        }
+    }
+    console.error('all attempts to connect to robot have failed');
+    return null;
+}
 onMounted(async () => {
-  console.log('attempting dial');
-  dialTo().then((client) => {
-    console.log(`client: ${client}`);
-  });
-});
+    const robotClient = await connect();
+    streamClient.value = new StreamClient(robotClient);
+
+    /*
+     * todo setup control options here
+     */
+})
 </script>
+
+<style scoped>
+
+</style>
