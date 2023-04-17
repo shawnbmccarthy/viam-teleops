@@ -1,8 +1,5 @@
 <template>
   <div>
-      <h3>{{ signalHost }}</h3>
-      <h3>{{ host }}</h3>
-      <h3>{{ secret }}</h3>
       <ControllerComponent
           :signaling-host="signalHost"
           :host="host"
