@@ -5,12 +5,18 @@
       <div><h3>loading</h3></div>
     </div>
     <div v-else>
-      <div id="nav"></div>
-      <div id="rear" data-stream="rear"></div>
-      <div id="monitor"></div>
-      <div id="left" data-stream="left"></div>
-      <div id="front" data-stream="front"></div>
-      <div id="right" data-stream="right"></div>
+      <b-container fluid class="m-0 p-0 text-center">
+        <b-row class="w-100">
+          <b-col id="nav" class="w-25"></b-col>
+          <b-col id="rear" class="w-50 videoWrapper"></b-col>
+          <b-col id="monitor" class="w-25"></b-col>
+        </b-row>
+        <b-row class="w-100">
+          <b-col fluid-grow id="left" class="w-25 embed-responsive embed-responsive-4by3 videoWrapper"></b-col>
+          <b-col fluid-grow id="front" class="w-50 embed-responsive embed-responsive-4by3 videoWrapper"></b-col>
+          <b-col fluid-grow id="right" class="w-25 embed-responsive embed-responsive-4by3 videoWrapper"></b-col>
+        </b-row>
+      </b-container>
     </div>
   </div>
 </template>
@@ -61,17 +67,28 @@ const connect = async () => {
 }
 
 const onTrack = (event) => {
-    console.log(`onTrack -> ${event}`)
-    const eventStream = event.streams[0]
-    if(!eventStream) {
-      console.error('eventStream is not valid')
-    }
+  const eventStream = event.streams[0]
+  if(!eventStream) {
+    console.error('eventStream is not valid')
+  }
 
-    const kind = 'track'
-    const streamName = eventStream.id;
-    console.log(`${kind} -> ${streamName}`)
-    const streamContainer = document.querySelector(`[id=${streamName}]`)
-    console.log(`streamContainer: ${streamContainer}`)
+  const kind = 'track'
+  const streamName = eventStream.id;
+  const streamContainer = document.querySelector(`[id=${streamName}]`)
+  if (!streamContainer) {
+    console.error('cannot find camera container')
+  } else {
+    const mediaElement = document.createElement(event.track.kind)
+    mediaElement.id = 'camstream'
+    streamContainer.appendChild(mediaElement)
+    mediaElement.autoplay = true
+    mediaElement.srcObject = eventStream
+    if (mediaElement instanceof HTMLVideoElement){
+      mediaElement.playsInline = true
+      mediaElement.controls = false
+    }
+  }
+
 
 }
 

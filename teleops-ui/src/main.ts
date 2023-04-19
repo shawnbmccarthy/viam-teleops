@@ -11,11 +11,16 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faGear } from '@fortawesome/free-solid-svg-icons'
 import { faDiscord } from '@fortawesome/free-brands-svg-icons'
 import { faUser } from '@fortawesome/free-regular-svg-icons'
+import { BootstrapVue3 } from 'bootstrap-vue-3'
+
+import 'bootstrap/dist/css/bootstrap.css'
+import 'bootstrap-vue-3/dist/bootstrap-vue-3.css'
 
 library.add(faDiscord, faUser, faGear)
 dom.watch()
 
 createApp(App)
     .component('fa-icon', FontAwesomeIcon)
+    .use(BootstrapVue3)
     .use(createPinia())
     .mount('#app')

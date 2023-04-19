@@ -1,10 +1,10 @@
 <template>
   <div>
-      <ControllerComponent
-          :signaling-host="signalHost"
-          :host="host"
-          :secret="secret"
-      ></ControllerComponent>
+    <ControllerComponent
+      :signaling-host="signalHost"
+      :host="host"
+      :secret="secret"
+    ></ControllerComponent>
   </div>
 </template>
 
@@ -23,8 +23,11 @@ const secret = ref<string>(process.env.VUE_APP_ROBOT_SECRET);
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-align: center;
   color: #2c3e50;
-  margin-top: 60px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
 }
 </style>
