@@ -8,13 +8,13 @@
       <b-container fluid class="m-0 p-0 text-center">
         <b-row class="w-100">
           <b-col id="nav" class="w-25"></b-col>
-          <b-col id="rear" class="w-50 videoWrapper"></b-col>
+          <b-col id="rear" class="w-50 embed-responsive embed-responsive-4by3"></b-col>
           <b-col id="monitor" class="w-25"></b-col>
         </b-row>
         <b-row class="w-100">
-          <b-col fluid-grow id="left" class="w-25 embed-responsive embed-responsive-4by3 videoWrapper"></b-col>
-          <b-col fluid-grow id="front" class="w-50 embed-responsive embed-responsive-4by3 videoWrapper"></b-col>
-          <b-col fluid-grow id="right" class="w-25 embed-responsive embed-responsive-4by3 videoWrapper"></b-col>
+          <b-col fluid-grow id="left" class="embed-responsive embed-responsive-1by1"></b-col>
+          <b-col fluid-grow id="front" class="embed-responsive embed-responsive-1by1"></b-col>
+          <b-col fluid-grow id="right" class="embed-responsive embed-responsive-1by1"></b-col>
         </b-row>
       </b-container>
     </div>
@@ -80,6 +80,9 @@ const onTrack = (event) => {
   } else {
     const mediaElement = document.createElement(event.track.kind)
     mediaElement.id = 'camstream'
+    mediaElement.classList.add('embed-responsive-item')
+    mediaElement.classList.add('mh-100')
+    mediaElement.classList.add('mw-100')
     streamContainer.appendChild(mediaElement)
     mediaElement.autoplay = true
     mediaElement.srcObject = eventStream
@@ -111,5 +114,21 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+.embed-container {
+  position: relative;
+  padding-bottom: 56.25%;
+  height: 0;
+  overflow: hidden;
+  max-width: 100%;
+}
 
+.embed-container iframe,
+.embed-container object,
+.embed-container embed {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
 </style>
