@@ -8,12 +8,20 @@
       <b-container fluid class="m-0 p-0 text-center">
         <b-row class="w-100">
           <b-col id="nav" class="w-25"></b-col>
-          <b-col id="rear" class="w-50 embed-responsive embed-responsive-4by3"></b-col>
+          <b-col class="w-50 embed-responsive embed-responsive-4by3">
+            <div id="rear" class="img-wrapper">
+              <b-img class="img-overlay" :src="lines"></b-img>
+            </div>
+          </b-col>
           <b-col id="monitor" class="w-25"></b-col>
         </b-row>
         <b-row class="w-100">
           <b-col fluid-grow id="left" class="embed-responsive embed-responsive-1by1"></b-col>
-          <b-col fluid-grow id="front" class="embed-responsive embed-responsive-1by1"></b-col>
+          <b-col fluid-grow class="embed-responsive embed-responsive-1by1">
+            <div id="front" class="img-wrapper">
+              <b-img class="img-overlay" :src="lines"></b-img>
+            </div>
+          </b-col>
           <b-col fluid-grow id="right" class="embed-responsive embed-responsive-1by1"></b-col>
         </b-row>
       </b-container>
@@ -29,6 +37,7 @@
 import { defineProps, onMounted, ref } from 'vue'
 import { createRobotClient, StreamClient } from '@viamrobotics/sdk'
 import BasicNavbar from '@/components/BasicNavbar.vue'
+import lines from '@/assets/lines.svg'
 
 interface Props {
     signalingHost: string,
@@ -36,9 +45,10 @@ interface Props {
     secret: string
 }
 
-const props = defineProps<Props>();
-const streamClient = ref<StreamClient | null>(null);
+const props = defineProps<Props>()
+const streamClient = ref<StreamClient | null>(null)
 
+const show = true
 /*
  * simple connection loop
  */
@@ -114,21 +124,15 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.embed-container {
+.img-wrapper {
   position: relative;
-  padding-bottom: 56.25%;
-  height: 0;
-  overflow: hidden;
-  max-width: 100%;
+  width: 100%;
 }
 
-.embed-container iframe,
-.embed-container object,
-.embed-container embed {
+.img-overlay {
   position: absolute;
-  top: 0;
+  bottom: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
+  right: 0;
 }
 </style>
