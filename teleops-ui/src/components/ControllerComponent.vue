@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div @keydown="moveBase" @keyup="stopBase">
     <BasicNavbar />
     <div v-if="!streamClient">
       <div><h3>loading</h3></div>
@@ -13,7 +13,12 @@
               <b-img class="img-overlay" :src="lines"></b-img>
             </div>
           </b-col>
-          <b-col id="monitor" class="w-25"></b-col>
+          <b-col id="monitor" class="w-25" >
+            <div>
+              <label for="power">base power: {{ power }}</label>
+              <b-form-input id="power" v-model="power" type="range" min="0" max="100"></b-form-input>
+            </div>
+          </b-col>
         </b-row>
         <b-row class="w-100">
           <b-col fluid-grow id="left" class="embed-responsive embed-responsive-1by1"></b-col>
@@ -35,9 +40,11 @@
  *       - need to add dynamic settings for keyboard and robot switching
  */
 import { defineProps, onMounted, ref } from 'vue'
-import { createRobotClient, StreamClient } from '@viamrobotics/sdk'
+import { BaseClient, createRobotClient, StreamClient, Vector3D } from '@viamrobotics/sdk'
 import BasicNavbar from '@/components/BasicNavbar.vue'
 import lines from '@/assets/lines.svg'
+
+export type Keys = 'w' | 'a' | 's' | 'd'
 
 interface Props {
     signalingHost: string,
@@ -45,10 +52,39 @@ interface Props {
     secret: string
 }
 
+const pressed = new Set<Keys>()
+
+const enum Keymap {
+  LEFT = 'a',
+  RIGHT = 'd',
+  FORWARD = 'w',
+  BACKWARD = 's'
+}
+
 const props = defineProps<Props>()
 const streamClient = ref<StreamClient | null>(null)
+const baseClient = ref<BaseClient | null>(null)
+const power = ref<number>(50)
+const baseDirection = ref<string>('stopped')
+const pressedKeys = ref({
+  w: false,
+  a: false,
+  s: false,
+  d: false,
+})
+const emit = defineEmits<{(event: 'keydown', key: Keys): void
+  (event: 'keyup', key: Keys): void
+}>();
 
-const show = true
+const emitKeyDown = (key: Keys) => {
+  pressedKeys[key] = true
+  emit('keydown', key)
+}
+
+const emitKeyUp = (key: Keys) => {
+  pressedKeys[key] = false
+  emit('keyup', key)
+}
 /*
  * simple connection loop
  */
@@ -82,7 +118,6 @@ const onTrack = (event) => {
     console.error('eventStream is not valid')
   }
 
-  const kind = 'track'
   const streamName = eventStream.id;
   const streamContainer = document.querySelector(`[id=${streamName}]`)
   if (!streamContainer) {
@@ -109,6 +144,7 @@ onMounted(async () => {
     try {
       const robotClient = await connect()
       streamClient.value = new StreamClient(robotClient)
+      baseClient.value = new BaseClient(robotClient, 'base')
       streamClient.value.on('track', onTrack)
       streamClient.value.add('rear')
       streamClient.value.add('left')
@@ -117,6 +153,7 @@ onMounted(async () => {
     } catch (error) {
         console.error(`failed to create a client connection ${error}`)
     }
+
     /*
      * todo setup control options here
      */
@@ -131,6 +168,7 @@ onMounted(async () => {
 
 .img-overlay {
   position: absolute;
+  padding-bottom: 2%;
   bottom: 0;
   left: 0;
   right: 0;
