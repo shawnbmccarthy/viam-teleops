@@ -5,10 +5,10 @@
       <div><h3>loading</h3></div>
     </div>
     <div v-else>
-      <b-container fluid class="m-0 p-0 text-center">
-        <b-row class="w-100">
+      <b-container fluid class="text-center">
+        <b-row>
           <b-col id="nav" class="w-25"></b-col>
-          <b-col class="w-50 embed-responsive embed-responsive-4by3">
+          <b-col>
             <div id="rear" class="img-wrapper">
               <b-img class="img-overlay" :src="lines"></b-img>
             </div>
@@ -20,14 +20,14 @@
             </div>
           </b-col>
         </b-row>
-        <b-row class="w-100">
-          <b-col fluid-grow id="left" class="embed-responsive embed-responsive-1by1"></b-col>
-          <b-col fluid-grow class="embed-responsive embed-responsive-1by1">
+        <b-row>
+          <b-col fluid-grow id="left"></b-col>
+          <b-col fluid-grow>
             <div id="front" class="img-wrapper">
               <b-img class="img-overlay" :src="lines"></b-img>
             </div>
           </b-col>
-          <b-col fluid-grow id="right" class="embed-responsive embed-responsive-1by1"></b-col>
+          <b-col fluid-grow id="right"></b-col>
         </b-row>
       </b-container>
     </div>
@@ -39,12 +39,10 @@
  * TODO: This is a basic skeleton of a teleop demonstration
  *       - need to add dynamic settings for keyboard and robot switching
  */
-import { defineProps, onMounted, ref } from 'vue'
-import { BaseClient, createRobotClient, StreamClient, Vector3D } from '@viamrobotics/sdk'
+import {defineProps, onMounted, onUnmounted, ref} from 'vue'
+import {BaseClient, createRobotClient, RobotClient, StreamClient, Vector3D} from '@viamrobotics/sdk'
 import BasicNavbar from '@/components/BasicNavbar.vue'
 import lines from '@/assets/lines.svg'
-
-export type Keys = 'w' | 'a' | 's' | 'd'
 
 interface Props {
     signalingHost: string,
@@ -52,39 +50,20 @@ interface Props {
     secret: string
 }
 
-const pressed = new Set<Keys>()
-
-const enum Keymap {
-  LEFT = 'a',
-  RIGHT = 'd',
-  FORWARD = 'w',
-  BACKWARD = 's'
-}
-
 const props = defineProps<Props>()
+const robotClient = ref<RobotClient | null>(null)
 const streamClient = ref<StreamClient | null>(null)
 const baseClient = ref<BaseClient | null>(null)
 const power = ref<number>(50)
-const baseDirection = ref<string>('stopped')
-const pressedKeys = ref({
-  w: false,
-  a: false,
-  s: false,
-  d: false,
-})
-const emit = defineEmits<{(event: 'keydown', key: Keys): void
-  (event: 'keyup', key: Keys): void
-}>();
 
-const emitKeyDown = (key: Keys) => {
-  pressedKeys[key] = true
-  emit('keydown', key)
+/*
+ * We need to build this, maybe check that
+ * we can get resource names, if not return false
+ */
+const isConnectionValid = async () => {
+    return true
 }
 
-const emitKeyUp = (key: Keys) => {
-  pressedKeys[key] = false
-  emit('keyup', key)
-}
 /*
  * simple connection loop
  */
@@ -136,15 +115,13 @@ const onTrack = (event) => {
       mediaElement.controls = false
     }
   }
-
-
 }
 
 onMounted(async () => {
     try {
-      const robotClient = await connect()
-      streamClient.value = new StreamClient(robotClient)
-      baseClient.value = new BaseClient(robotClient, 'base')
+      robotClient.value = await connect()
+      streamClient.value = new StreamClient(robotClient.value)
+      baseClient.value = new BaseClient(robotClient.value, 'base')
       streamClient.value.on('track', onTrack)
       streamClient.value.add('rear')
       streamClient.value.add('left')
@@ -153,11 +130,25 @@ onMounted(async () => {
     } catch (error) {
         console.error(`failed to create a client connection ${error}`)
     }
-
     /*
      * todo setup control options here
      */
 })
+
+onUnmounted(async () => {
+    if (streamClient.value) {
+        streamClient.value.off('track', onTrack)
+        streamClient.value.remove('rear')
+        streamClient.value.remove('left')
+        streamClient.value.remove('front')
+        streamClient.value.remove('right')
+    }
+
+    if (robotClient.value) {
+        robotClient.value.disconnect()
+    }
+})
+
 </script>
 
 <style scoped>
