@@ -1,33 +1,41 @@
 <template>
-  <div @keydown="moveBase" @keyup="stopBase">
-    <BasicNavbar />
+  <div>
+    <b-navbar toggleable="sm" type="dark">
+      <b-navbar-brand href="#">Teleop Demo</b-navbar-brand>
+      <fa-icon :icon="['fas', 'dharmachakra']"/>
+    </b-navbar>
     <div v-if="!streamClient">
-      <div><h3>loading</h3></div>
+      <div class="mt-xxl-5 pt-xxl-5 text-center">
+          <h3>loading Cameras</h3>
+          <div class="d-flex justify-content-center mb-3">
+              <b-spinner style="width: 5rem; height: 5rem;"/>
+          </div>
+      </div>
     </div>
     <div v-else>
-      <b-container fluid class="m-0 p-0 text-center">
-        <b-row class="w-100">
-          <b-col id="nav" class="w-25"></b-col>
-          <b-col class="w-50 embed-responsive embed-responsive-4by3">
+      <b-container fluid>
+        <b-row>
+          <b-col id="nav"/>
+          <b-col>
             <div id="rear" class="img-wrapper">
-              <b-img class="img-overlay" :src="lines"></b-img>
+              <b-img class="img-overlay" :src="lines"/>
             </div>
           </b-col>
-          <b-col id="monitor" class="w-25" >
+          <b-col id="monitor">
             <div>
               <label for="power">base power: {{ power }}</label>
-              <b-form-input id="power" v-model="power" type="range" min="0" max="100"></b-form-input>
+              <b-form-input id="power" v-model="power" type="range" min="0" max="100"/>
             </div>
           </b-col>
         </b-row>
-        <b-row class="w-100">
-          <b-col fluid-grow id="left" class="embed-responsive embed-responsive-1by1"></b-col>
-          <b-col fluid-grow class="embed-responsive embed-responsive-1by1">
+        <b-row>
+          <b-col fluid-grow id="left"/>
+          <b-col fluid-grow>
             <div id="front" class="img-wrapper">
-              <b-img class="img-overlay" :src="lines"></b-img>
+              <b-img class="img-overlay" :src="lines"/>
             </div>
           </b-col>
-          <b-col fluid-grow id="right" class="embed-responsive embed-responsive-1by1"></b-col>
+          <b-col fluid-grow id="right"/>
         </b-row>
       </b-container>
     </div>
@@ -40,11 +48,8 @@
  *       - need to add dynamic settings for keyboard and robot switching
  */
 import { defineProps, onMounted, ref } from 'vue'
-import { BaseClient, createRobotClient, StreamClient, Vector3D } from '@viamrobotics/sdk'
-import BasicNavbar from '@/components/BasicNavbar.vue'
+import { BaseClient, createRobotClient, StreamClient } from '@viamrobotics/sdk'
 import lines from '@/assets/lines.svg'
-
-export type Keys = 'w' | 'a' | 's' | 'd'
 
 interface Props {
     signalingHost: string,
@@ -52,39 +57,11 @@ interface Props {
     secret: string
 }
 
-const pressed = new Set<Keys>()
-
-const enum Keymap {
-  LEFT = 'a',
-  RIGHT = 'd',
-  FORWARD = 'w',
-  BACKWARD = 's'
-}
-
 const props = defineProps<Props>()
 const streamClient = ref<StreamClient | null>(null)
 const baseClient = ref<BaseClient | null>(null)
 const power = ref<number>(50)
-const baseDirection = ref<string>('stopped')
-const pressedKeys = ref({
-  w: false,
-  a: false,
-  s: false,
-  d: false,
-})
-const emit = defineEmits<{(event: 'keydown', key: Keys): void
-  (event: 'keyup', key: Keys): void
-}>();
 
-const emitKeyDown = (key: Keys) => {
-  pressedKeys[key] = true
-  emit('keydown', key)
-}
-
-const emitKeyUp = (key: Keys) => {
-  pressedKeys[key] = false
-  emit('keyup', key)
-}
 /*
  * simple connection loop
  */
