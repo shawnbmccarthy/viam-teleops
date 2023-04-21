@@ -1,35 +1,11 @@
 <template>
-  <div @keydown="moveBase" @keyup="stopBase">
+  <div>
     <BasicNavbar />
     <div v-if="!streamClient">
-      <div><h3>loading</h3></div>
+      <LoadingComponent/>
     </div>
     <div v-else>
-      <b-container fluid class="text-center">
-        <b-row>
-          <b-col id="nav" class="w-25"></b-col>
-          <b-col>
-            <div id="rear" class="img-wrapper">
-              <b-img class="img-overlay" :src="lines"></b-img>
-            </div>
-          </b-col>
-          <b-col id="monitor" class="w-25" >
-            <div>
-              <label for="power">base power: {{ power }}</label>
-              <b-form-input id="power" v-model="power" type="range" min="0" max="100"></b-form-input>
-            </div>
-          </b-col>
-        </b-row>
-        <b-row>
-          <b-col fluid-grow id="left"></b-col>
-          <b-col fluid-grow>
-            <div id="front" class="img-wrapper">
-              <b-img class="img-overlay" :src="lines"></b-img>
-            </div>
-          </b-col>
-          <b-col fluid-grow id="right"></b-col>
-        </b-row>
-      </b-container>
+      <TeleopComponents :robot-client="robotClient" :use-overlay="true" base-name="base"/>
     </div>
   </div>
 </template>
@@ -42,6 +18,8 @@
 import {defineProps, onMounted, onUnmounted, ref} from 'vue'
 import {BaseClient, createRobotClient, RobotClient, StreamClient, Vector3D} from '@viamrobotics/sdk'
 import BasicNavbar from '@/components/BasicNavbar.vue'
+import LoadingComponent from '@/components/LoadingComponent.vue'
+import TeleopComponents from '@/components/TeleopComponents.vue'
 import lines from '@/assets/lines.svg'
 
 interface Props {
@@ -53,100 +31,50 @@ interface Props {
 const props = defineProps<Props>()
 const robotClient = ref<RobotClient | null>(null)
 const streamClient = ref<StreamClient | null>(null)
-const baseClient = ref<BaseClient | null>(null)
-const power = ref<number>(50)
-
-/*
- * We need to build this, maybe check that
- * we can get resource names, if not return false
- */
-const isConnectionValid = async () => {
-    return true
-}
 
 /*
  * simple connection loop
  */
 const connect = async () => {
-    let connected = false;
-    let attempts = 0;
+  let connected = false;
+  let attempts = 0;
 
-    while(!connected && attempts < 5) {
-        try {
-            return await createRobotClient({
-                host: props.host,
-                authEntity: props.host,
-                signalingAddress: props.signalingHost,
-                credential: {
-                    type: 'robot-location-secret',
-                    payload: props.secret
-                },
-                iceServers: [{ urls: 'stun:global.stun.twilio.com:3478' }]
-            })
-        } catch (err) {
-            console.warn(`failed to connect (${err}), attempting to retry (${attempts})`);
-            attempts++;
-        }
-    }
-    throw new Error('attempts to connect have failed');
-}
-
-const onTrack = (event) => {
-  const eventStream = event.streams[0]
-  if(!eventStream) {
-    console.error('eventStream is not valid')
-  }
-
-  const streamName = eventStream.id;
-  const streamContainer = document.querySelector(`[id=${streamName}]`)
-  if (!streamContainer) {
-    console.error('cannot find camera container')
-  } else {
-    const mediaElement = document.createElement(event.track.kind)
-    mediaElement.id = 'camstream'
-    mediaElement.classList.add('embed-responsive-item')
-    mediaElement.classList.add('mh-100')
-    mediaElement.classList.add('mw-100')
-    streamContainer.appendChild(mediaElement)
-    mediaElement.autoplay = true
-    mediaElement.srcObject = eventStream
-    if (mediaElement instanceof HTMLVideoElement){
-      mediaElement.playsInline = true
-      mediaElement.controls = false
+  while(!connected && attempts < 5) {
+    try {
+      return await createRobotClient({
+        host: props.host,
+        authEntity: props.host,
+        signalingAddress: props.signalingHost,
+        credential: {
+          type: 'robot-location-secret',
+          payload: props.secret
+        },
+        iceServers: [{ urls: 'stun:global.stun.twilio.com:3478' }]
+      })
+    } catch (err) {
+      console.warn(`failed to connect (${err}), attempting to retry (${attempts})`);
+      attempts++;
     }
   }
+  throw new Error('attempts to connect have failed');
 }
 
 onMounted(async () => {
-    try {
-      robotClient.value = await connect()
-      streamClient.value = new StreamClient(robotClient.value)
-      baseClient.value = new BaseClient(robotClient.value, 'base')
-      streamClient.value.on('track', onTrack)
-      streamClient.value.add('rear')
-      streamClient.value.add('left')
-      streamClient.value.add('front')
-      streamClient.value.add('right')
-    } catch (error) {
-        console.error(`failed to create a client connection ${error}`)
-    }
-    /*
-     * todo setup control options here
-     */
+  try {
+    robotClient.value = await connect()
+    streamClient.value = new StreamClient(robotClient.value)
+  } catch (error) {
+    console.error(`failed to create a client connection ${error}`)
+  }
+  /*
+   * todo setup control options here
+   */
 })
 
 onUnmounted(async () => {
-    if (streamClient.value) {
-        streamClient.value.off('track', onTrack)
-        streamClient.value.remove('rear')
-        streamClient.value.remove('left')
-        streamClient.value.remove('front')
-        streamClient.value.remove('right')
-    }
-
-    if (robotClient.value) {
-        robotClient.value.disconnect()
-    }
+  if (robotClient.value) {
+    robotClient.value.disconnect()
+  }
 })
 
 </script>

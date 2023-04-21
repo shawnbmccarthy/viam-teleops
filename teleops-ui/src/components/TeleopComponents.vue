@@ -1,11 +1,15 @@
 <template>
-  <b-container fluid class="text-center">
+  <b-container fluid>
     <b-row>
       <b-col>
         <MonitorComponent type="nav"/>
       </b-col>
       <b-col>
-        <CameraComponent id="rear" class="img-wrapper" :use-overlay="useOverlay" stream-client=""/>
+        <CameraComponent
+          id="rear"
+          class="img-wrapper"
+          :use-overlay="useOverlay"
+          :stream-client="streamClient"/>
       </b-col>
       <b-col>
         <MonitorComponent :id="baseName" type="controls"/>
@@ -13,10 +17,14 @@
     </b-row>
     <b-row>
       <b-col fluid-grow>
-        <CameraComponent id="left" :use-overlay="false" stream-client=""/>
+        <CameraComponent id="left" :use-overlay="false" :stream-client="streamClient"/>
       </b-col>
       <b-col fluid-grow>
-        <CameraComponent id="front" class="img-wrapper" :use-overlay="useOverlay" stream-client=""/>
+        <CameraComponent
+          id="front"
+          class="img-wrapper"
+          :use-overlay="useOverlay"
+          stream-client=""/>
       </b-col>
       <b-col fluid-grow>
         <CameraComponent id="right" :use-overlay="false" stream-client=""/>
@@ -26,7 +34,7 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps, onMounted, ref } from 'vue'
+import {defineProps, onMounted, onUnmounted, ref} from 'vue'
 import CameraComponent from '@/components/CameraComponent.vue'
 import MonitorComponent from '@/components/MonitorComponent.vue'
 import {BaseClient, RobotClient, StreamClient} from '@viamrobotics/sdk'
@@ -68,8 +76,15 @@ const onTrack = (event) => {
     }
 }
 onMounted(() => {
-    baseClient.value = new BaseClient(propps.robotClient)
+    baseClient.value = new BaseClient(props.robotClient, props.baseName)
     streamClient.value = new StreamClient(props.robotClient)
+    streamClient.value.on('track', onTrack)
+})
+
+onUnmounted(() => {
+  if (streamClient.value) {
+    streamClient.value.off('track', onTrack)
+  }
 })
 
 </script>

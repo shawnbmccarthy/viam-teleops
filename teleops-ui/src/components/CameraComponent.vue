@@ -1,27 +1,23 @@
 <template>
-<div></div>
+  <div v-if="useOverlay">
+    <b-img class="img-overlay" :src="lines"></b-img>
+  </div>
 </template>
 
 <script setup lang="ts">
 import { defineProps, onMounted } from 'vue'
 import { StreamClient } from '@viamrobotics/sdk'
+import lines from '@/assets/lines.svg'
 
 interface Props {
-    id: string,
+    id: string
     streamClient: StreamClient
+    useOverlay: boolean
 }
 
 const props = defineProps<Props>()
 
-const onTrack = (event) => {
-    console.log(`event: ${event}`)
-}
-
 onMounted(() => {
-    console.log(`id: ${props.id}`)
-    console.log(props.streamClient)
-    props.streamClient.on('track', onTrack)
-
     try {
         props.streamClient.add(props.id)
     }catch(error){
