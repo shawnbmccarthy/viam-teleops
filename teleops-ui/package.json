@@ -13,7 +13,7 @@
     "@fortawesome/free-regular-svg-icons": "^6.4.0",
     "@fortawesome/free-solid-svg-icons": "^6.4.0",
     "@fortawesome/vue-fontawesome": "^3.0.3",
-    "@viamrobotics/sdk": "^0.0.42",
+    "@viamrobotics/sdk": "^0.1.0-pre.0",
     "bootstrap": "^5.2.3",
     "bootstrap-vue-3": "^0.5.1",
     "core-js": "^3.8.3",

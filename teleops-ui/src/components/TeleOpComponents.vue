@@ -5,11 +5,16 @@
         <MonitorComponent type="nav"/>
       </b-col>
       <b-col>
-        <CameraComponent
-          id="rear"
-          class="img-wrapper"
-          :use-overlay="useOverlay"
-          :stream-client="streamClient"/>
+        <div v-if="!streamClient">
+          <LoadingComponent/>
+        </div>
+        <div v-else>
+          <CameraComponent
+            id="rear"
+            class="img-wrapper"
+            :use-overlay="useOverlay"
+            :stream-client="streamClient"/>
+        </div>
       </b-col>
       <b-col>
         <MonitorComponent :id="baseName" type="controls"/>
@@ -17,17 +22,40 @@
     </b-row>
     <b-row>
       <b-col fluid-grow>
-        <CameraComponent id="left" :use-overlay="false" :stream-client="streamClient"/>
+        <div v-if="!streamClient">
+          <LoadingComponent/>
+        </div>
+        <div v-else>
+          <CameraComponent
+            id="left"
+            class="img-wrapper"
+            :use-overlay="false"
+            :stream-client="streamClient"/>
+        </div>>
       </b-col>
       <b-col fluid-grow>
+        <div v-if="!streamClient">
+          <LoadingComponent/>
+        </div>
+        <div v-else>
+          <CameraComponent
+            id="front"
+            class="img-wrapper"
+            :use-overlay="useOverlay"
+            :stream-client="streamClient"/>
+        </div>
+      </b-col>
+      <b-col fluid-grow>
+      <div v-if="!streamClient">
+        <LoadingComponent/>
+      </div>
+      <div v-else>
         <CameraComponent
-          id="front"
+          id="right"
           class="img-wrapper"
-          :use-overlay="useOverlay"
-          stream-client=""/>
-      </b-col>
-      <b-col fluid-grow>
-        <CameraComponent id="right" :use-overlay="false" stream-client=""/>
+          :use-overlay="false"
+          :stream-client="streamClient"/>
+      </div>
       </b-col>
     </b-row>
   </b-container>
@@ -38,6 +66,7 @@ import {defineProps, onMounted, onUnmounted, ref} from 'vue'
 import CameraComponent from '@/components/CameraComponent.vue'
 import MonitorComponent from '@/components/MonitorComponent.vue'
 import {BaseClient, RobotClient, StreamClient} from '@viamrobotics/sdk'
+import LoadingComponent from "@/components/LoadingComponent.vue";
 
 const streamClient = ref<StreamClient | null>(null)
 const baseClient = ref<BaseClient | null>(null)
@@ -58,6 +87,7 @@ const onTrack = (event) => {
 
     const streamName = eventStream.id;
     const streamContainer = document.querySelector(`[id=${streamName}]`)
+    console.info(`stream name: ${streamName}, stream container: ${streamContainer}`)
     if (!streamContainer) {
         console.error('cannot find camera container')
     } else {
@@ -75,6 +105,7 @@ const onTrack = (event) => {
         }
     }
 }
+
 onMounted(() => {
     baseClient.value = new BaseClient(props.robotClient, props.baseName)
     streamClient.value = new StreamClient(props.robotClient)
@@ -82,6 +113,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+  console.info('attempting unmount')
   if (streamClient.value) {
     streamClient.value.off('track', onTrack)
   }
@@ -90,5 +122,8 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-
+.img-wrapper {
+    position: relative;
+    width: 100%;
+}
 </style>
