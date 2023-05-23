@@ -15,7 +15,6 @@ import ControllerComponent from '@/components/ControllerComponent.vue';
 const signalHost = ref<string>(process.env.VUE_APP_SIGNAL_HOST);
 const host = ref<string>(process.env.VUE_APP_ROBOT_ADDR);
 const secret = ref<string>(process.env.VUE_APP_ROBOT_SECRET);
-
 </script>
 
 <style>

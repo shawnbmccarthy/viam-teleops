@@ -48,8 +48,11 @@
  *       - need to add dynamic settings for keyboard and robot switching
  */
 import { defineProps, onMounted, ref } from 'vue'
-import { BaseClient, createRobotClient, StreamClient } from '@viamrobotics/sdk'
+import { BaseClient, createRobotClient, StreamClient, type ServiceError } from '@viamrobotics/sdk'
+import { displayError, displayWarning } from '@/lib/error'
 import lines from '@/assets/lines.svg'
+
+export type Keys = 'w' | 'a' | 's' | 'd'
 
 interface Props {
     signalingHost: string,
@@ -62,6 +65,71 @@ const streamClient = ref<StreamClient | null>(null)
 const baseClient = ref<BaseClient | null>(null)
 const power = ref<number>(50)
 
+const pressed = new Set<Keys>()
+let stopped = true
+
+const enum Keymap {
+  LEFT = 'a',
+  RIGHT = 'd',
+  FORWARD = 'w',
+  BACKWARD = 's'
+}
+
+const stop = async () => {
+  stopped = true
+  try {
+    if (baseClient.value) {
+      await baseClient.value.stop()
+    } else {
+      displayError('base client is not initialized')
+    }
+  } catch (error) {
+    displayError(error as ServiceError)
+  }
+}
+
+const digestInput = async () => {
+  let linearValue = 0;
+  let angularValue = 0;
+
+  for (const item of pressed) {
+    switch (item) {
+      case Keymap.FORWARD: {
+        linearValue += Number(0.01 * power.value)
+        break
+      }
+      case Keymap.BACKWARD: {
+        linearValue -= Number(0.01 * power.value)
+        break
+      }
+      case Keymap.LEFT: {
+        angularValue += Number(0.01 * power.value)
+        break
+      }
+      case Keymap.RIGHT: {
+        angularValue -= Number(0.01 * power.value)
+        break
+      }
+    }
+  }
+
+  const linear = {x: 0, y: linearValue, z: 0}
+  const angular = {x: 0, y: 0, z: angularValue}
+
+  try {
+    if (baseClient.value) {
+      await baseClient.value.setPower(linear, angular)
+    } else {
+      displayError('base client not initialized')
+    }
+  } catch (error) {
+    displayError(error as ServiceError)
+  }
+
+  if (pressed.size <= 0) {
+    await stop()
+  }
+}
 /*
  * simple connection loop
  */
@@ -82,7 +150,7 @@ const connect = async () => {
                 iceServers: [{ urls: 'stun:global.stun.twilio.com:3478' }]
             })
         } catch (err) {
-            console.warn(`failed to connect (${err}), attempting to retry (${attempts})`);
+            displayWarning(`failed to connect (${err}), attempting to retry (${attempts})`)
             attempts++;
         }
     }
@@ -92,13 +160,13 @@ const connect = async () => {
 const onTrack = (event) => {
   const eventStream = event.streams[0]
   if(!eventStream) {
-    console.error('eventStream is not valid')
+    displayError('eventStream is not valid')
   }
 
   const streamName = eventStream.id;
   const streamContainer = document.querySelector(`[id=${streamName}]`)
   if (!streamContainer) {
-    console.error('cannot find camera container')
+    displayError('cannot find camera container')
   } else {
     const mediaElement = document.createElement(event.track.kind)
     mediaElement.id = 'camstream'
@@ -113,11 +181,28 @@ const onTrack = (event) => {
       mediaElement.controls = false
     }
   }
+}
 
+const handleKeyDown = (key: Keys) => {
+  pressed.add(key)
+  digestInput()
+}
 
+const handleKeyUp = (key: Keys) =>  {
+  pressed.delete(key)
+
+  if (pressed.size > 0) {
+    stopped = false
+    digestInput()
+  } else {
+    stop()
+  }
 }
 
 onMounted(async () => {
+    /*
+     * setup basic viam services
+     */
     try {
       const robotClient = await connect()
       streamClient.value = new StreamClient(robotClient)
@@ -128,7 +213,7 @@ onMounted(async () => {
       streamClient.value.add('front')
       streamClient.value.add('right')
     } catch (error) {
-        console.error(`failed to create a client connection ${error}`)
+      displayError(error as ServiceError)
     }
 
     /*

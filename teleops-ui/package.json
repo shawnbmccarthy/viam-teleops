@@ -13,18 +13,20 @@
     "@fortawesome/free-regular-svg-icons": "^6.4.0",
     "@fortawesome/free-solid-svg-icons": "^6.4.0",
     "@fortawesome/vue-fontawesome": "^3.0.3",
-    "@viamrobotics/sdk": "^0.0.42",
+    "@viamrobotics/sdk": "^0.1.0",
     "bootstrap": "^5.2.3",
     "bootstrap-vue-3": "^0.5.1",
     "core-js": "^3.8.3",
     "pinia": "^2.0.34",
     "vue": "^3.2.13",
-    "vue-router": "^4.1.6"
+    "vue-router": "^4.1.6",
+    "vue-toast-notification": "^3.1.1"
   },
   "devDependencies": {
     "@types/bootstrap": "^5.2.6",
-    "@types/vue":  "^2.0.0",
+    "@types/vue": "^2.0.0",
     "@types/vue-router": "^2.0.0",
+    "@types/webrtc": "^0.0.35",
     "@typescript-eslint/eslint-plugin": "^5.4.0",
     "@typescript-eslint/parser": "^5.4.0",
     "@vue/cli-plugin-babel": "~5.0.0",

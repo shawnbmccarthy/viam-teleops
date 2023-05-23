@@ -12,7 +12,6 @@ import { faGear, faDharmachakra } from '@fortawesome/free-solid-svg-icons'
 import { faDiscord  } from '@fortawesome/free-brands-svg-icons'
 import { faUser } from '@fortawesome/free-regular-svg-icons'
 import { BootstrapVue3 } from 'bootstrap-vue-3'
-
 import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue-3/dist/bootstrap-vue-3.css'
 
