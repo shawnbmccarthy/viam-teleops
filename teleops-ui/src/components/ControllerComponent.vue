@@ -25,6 +25,24 @@
             <div>
               <label for="power">base power: {{ power }}</label>
               <b-form-input id="power" v-model="power" type="range" min="0" max="100"/>
+              <label for="direction">direction</label>
+              <div
+                v-for="(lineKeys, index) in keysLayout"
+                class="my-1 flex flex-col gap-2 self-end"
+                :key="index">
+                <b-button
+                  variant="secondary"
+                  class="flex select-none items-center gap-1.5 border border-gray-500 px-3 py-1 uppercase outline-none"
+                  v-for="key in lineKeys"
+                  :key="key"
+                  :pressed = pressedKeys[key]
+                  @pointerdown="handlePointerDown(key)"
+                  @pointerup="handlePointerUp(key)"
+                  @pointerleave="handlePointerUp(key)"
+                >
+                  {{key}}
+                </b-button>
+              </div>
             </div>
           </b-col>
         </b-row>
@@ -65,7 +83,15 @@ const streamClient = ref<StreamClient | null>(null)
 const baseClient = ref<BaseClient | null>(null)
 const power = ref<number>(50)
 
+const pressedKeys = ref({
+  w: false,
+  a: false,
+  s: false,
+  d: false
+})
+
 const pressed = new Set<Keys>()
+const keysLayout = [['a'], ['w', 's'], ['d']] as const
 let stopped = true
 
 const enum Keymap {
@@ -75,10 +101,33 @@ const enum Keymap {
   BACKWARD = 's'
 }
 
+const normalizeKey = (key: string): Keys | null => {
+  return ({
+    w: 'w',
+    a: 'a',
+    s: 's',
+    d: 'd'
+  } as Record<string, Keys>)[key.toLowerCase()] ?? null
+}
+
+const handleVisibilityChange = () => {
+  if (document.visibilityState === 'hidden' && pressed.size > 0) {
+    pressed.clear()
+    stop()
+  }
+}
+
+const handleOnBlur = () => {
+  if (pressed.size <= 0) {
+    stop()
+  }
+}
+
 const stop = async () => {
   stopped = true
   try {
     if (baseClient.value) {
+      console.debug('stop')
       await baseClient.value.stop()
     } else {
       displayError('base client is not initialized')
@@ -118,6 +167,7 @@ const digestInput = async () => {
 
   try {
     if (baseClient.value) {
+      console.debug(`setPower: (${linear.x}, ${linear.y}, ${linear.z}), (${angular.x}, ${angular.y}, ${angular.z})`)
       await baseClient.value.setPower(linear, angular)
     } else {
       displayError('base client not initialized')
@@ -127,6 +177,7 @@ const digestInput = async () => {
   }
 
   if (pressed.size <= 0) {
+    console.debug(`stop`)
     await stop()
   }
 }
@@ -183,12 +234,14 @@ const onTrack = (event) => {
   }
 }
 
-const handleKeyDown = (key: Keys) => {
+const handlePointerDown = (key: Keys) => {
+  pressedKeys.value[key] = true
   pressed.add(key)
   digestInput()
 }
 
-const handleKeyUp = (key: Keys) =>  {
+const handlePointerUp = (key: Keys) => {
+  pressedKeys.value[key] = false
   pressed.delete(key)
 
   if (pressed.size > 0) {
@@ -199,7 +252,43 @@ const handleKeyUp = (key: Keys) =>  {
   }
 }
 
+const handleKeyDown = (event: KeyboardEvent) => {
+  event.preventDefault()
+  event.stopPropagation()
+  const key = normalizeKey(event.key)
+
+  if (key === null || pressedKeys.value[key]){
+    return
+  }
+  pressedKeys.value[key] = true
+  pressed.add(key)
+  digestInput()
+}
+
+const handleKeyUp = (event: KeyboardEvent) =>  {
+  event.preventDefault()
+  event.stopPropagation()
+
+  const key = normalizeKey(event.key)
+
+  if (key !== null) {
+    pressedKeys.value[key] = false
+    pressed.delete(key)
+
+    if (pressed.size > 0) {
+      stopped = false
+      digestInput()
+    } else {
+      stop()
+    }
+  }
+}
+
 onMounted(async () => {
+    window.addEventListener('visibilitychange', handleVisibilityChange)
+    window.addEventListener('blur', handleOnBlur)
+    window.addEventListener('keydown', handleKeyDown, false)
+    window.addEventListener("keyup", handleKeyUp, false)
     /*
      * setup basic viam services
      */
